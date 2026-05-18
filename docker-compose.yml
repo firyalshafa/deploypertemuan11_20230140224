@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:14
+    container_name: db_mahasiswa
+    restart: always
+    environment:
+      POSTGRES_DB: praktikum_db
+      POSTGRES_USER: praktikum_user
+      POSTGRES_PASSWORD: 12345
+    ports:
+      - "5434:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U praktikum_user -d praktikum_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .                          # ← Ganti dari image: ke build:
+    container_name: pertemuan11
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy    # ← Tunggu DB ready dulu
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/praktikum_db
+      SPRING_DATASOURCE_USERNAME: praktikum_user
+      SPRING_DATASOURCE_PASSWORD: 12345
+
+volumes:
+  db_data:
